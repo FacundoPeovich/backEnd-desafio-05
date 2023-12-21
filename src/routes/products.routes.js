@@ -1,77 +1,160 @@
-import {Router} from "express";
-//import {ProductManagerFile} from "../managers/ProductManagerFile.js";
-import {ProductManagerFile} from "../managers/ProductManagerFile.js"
+import { Router } from "express";
 
+import productsModel from "../dao/models/products.model.js";
 
-const path = "products.json";
 const router = Router();
-const productManagerFile = new ProductManagerFile(path);
 
-router.get('/', async (req,res)=>{
-    let limite = req.query.limit;
-    limite = parseInt(limite);
-    let products = await productManagerFile.getProducts()
-    if (limite && limite > 0){
-        if (limite > products.length) {
-            limite = products.length
-        }
-        let i;
-        let productosAcotados = [];
-        for (i=0;i<=limite-1;i++) { 
-            productosAcotados.push(products[i]);
-        }
-        products = productosAcotados;
-    }
+router.get("/", async (req, res) => {
+  
+  try {
+    let products = await productsModel.find();
     res.send({
-        status:"succes",
-        productos: products
-    })
+      status: "succes",
+      products,
+    });
+  } catch {
+    console.log("Error en lectura de archivos!!");
+  }
+});
 
-})
-
-router.get('/:pid', async (req,res)=>{
-    const pid = req.params.pid;
-    const product = await productManagerFile.getProductById(pid);
+router.get("/:pid", async (req, res) => {
+  const pid = req.params.pid;
+  if (!pid) {
+    return res.status(400).send({ error: "Debe ingresar Id. Product" });
+  }
+  
+  try {
+    const product = await productsModel.findById(pid);
     res.send({
-        status:"succes",
-        msg:"Product hallado",
-        product
-    })
-})
+      status: "succes",
+      msg: "Product hallado",
+      product,
+    });
+  } catch {
+    console.log("Error en lectura de archivos!!");
+  }
+});
 
-router.post('/', async (req,res)=>{ 
+router.post("/", async (req, res) => {
+  const {
+    title,
+    description,
+    code,
+    price,
+    status,
+    stock,
+    category,
+    thumbnails,
+  } = req.body; //json con el producto
+  if (
+    !title ||
+    !description ||
+    !code ||
+    !price ||
+    !status ||
+    !stock ||
+    !category
+  ) {
+    return res.status(400).send({ error: "Datos incompletos" });
+  }
 
-    const product = req.body;//json con el producto
+  const product = {
+    title,
+    description,
+    code,
+    price,
+    status,
+    stock,
+    category,
+    thumbnails,
+  };
 
-    const products = await productManagerFile.createProduct(product);
-
+  
+  try {
+    const result = await productsModel.create(product);
     res.send({
-        status:"succes",
-        msg:"Producto creado",
-        productos: products
-    })
-})
+      status: "succes",
+      msg: "Producto creado",
+      result,
+    });
+  } catch {
+    console.log("Error en lectura de archivos!!");
+  }
+});
 
-router.put('/:pid', async (req,res)=>{
-    const pid = req.params.pid;
-    const product = req.body;
-    const products = await productManagerFile.updateProduct(pid, product);
+router.put("/:pid", async (req, res) => {
+  const pid = req.params.pid;
+
+  if (!pid) {
+    return res.status(400).send({ error: "Debe ingresar Id. Product" });
+  }
+
+  //const product = req.body;
+  const {
+    title,
+    description,
+    code,
+    price,
+    status,
+    stock,
+    category,
+    thumbnails,
+  } = req.body; //json con el producto
+  if (
+    !title || !description ||!code || !price || !status || !stock || !category) {
+    return res.status(400).send({ error: "Datos incompletos" });
+  }
+  const product = {
+    title,
+    description,
+    code,
+    price,
+    status,
+    stock,
+    category,
+    thumbnails,
+  };
+  
+  try {
+    const result = await productsModel.updateOne({ _id: pid }, { $set: product });
     res.send({
-        status:"succes",
-        msg:`Ruta PUT de PRODUCTS con ID: ${pid}`,
-        productos: products
+      status: "succes",
+      msg: `Ruta PUT de PRODUCTS con ID: ${pid}`,
+      result,
+    });
+  } catch {
+    console.log("Error en lectura de archivos!!");
+  }
+});
 
-    })
-})
+//Para ingresar un array de Productos desde el body
+router.post("/insert", async (req, res) => {
+  const product = req.body;
+  
+  try {
+    const result = await productsModel.insertMany(product);
+    res.send({ result });
+  } catch {
+    console.log("Error en lectura de archivos!!");
+  }
+});
 
-router.delete('/:pid', async (req,res)=>{
-    const pid = req.params.pid;
-    const products = await productManagerFile.deleteProduct(pid);
+router.delete("/:pid", async (req, res) => {
+  const pid = req.params.pid;
+
+  if (!pid) {
+    return res.status(400).send({ error: "Debe ingresar Id. Product" });
+  }
+  try {
+    const result = await productsModel.deleteOne({ _id: pid });
     res.send({
-        status:"succes",
-        msg:`Ruta DELETE de PRODUCTS con ID: ${pid}`,
-        productos: products
-    })
-})
+      status: "succes",
+      msg: `Ruta DELETE de PRODUCTS con ID: ${pid}`,
+      result,
+    });
+  } catch {
+    console.log("Error en lectura de archivos!!");
+  }
+});
 
-export {router as productRouter};
+export { router as productRouter };

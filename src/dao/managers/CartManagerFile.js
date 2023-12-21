@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { __dirname, generarIdUnico } from "../utils.js";
+import { __dirname, generarIdUnico } from "../../utils.js";
 
 class CartManagerFile {
   constructor(pathFile) {
