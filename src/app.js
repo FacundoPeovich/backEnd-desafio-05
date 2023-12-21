@@ -49,7 +49,8 @@ io.on("connection", (socket)=>{
             message: data.message
         }
 
-        const result = await messagesModel.create(message);
+        const result = await messagesModel.create(message);     //Se almacena el mensaje
+        //let chats = await messagesModel.find();   //Si uso está funcion, trae todos los mensajes de chat antiguos
         io.emit("messages", messages);
     })
 
