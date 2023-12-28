@@ -1,20 +1,25 @@
 import { Router } from "express";
 
-import productsModel from "../dao/models/products.model.js";
+import { ProductManagerDB } from "../dao/managers/dbMangers/ProductManagerDB.js";
+
 
 const router = Router();
+
+const productMangerDB = new ProductManagerDB();
 
 router.get("/", async (req, res) => {
   
   try {
-    let products = await productsModel.find();
+    const products = await productMangerDB.getProducts();
     res.send({
       status: "succes",
       products,
     });
   } catch {
     console.log("Error en lectura de archivos!!");
-  }
+    return res.status(400).send({ error: "Error en lectura de archivos" });
+        
+    }
 });
 
 router.get("/:pid", async (req, res) => {
@@ -24,7 +29,7 @@ router.get("/:pid", async (req, res) => {
   }
   
   try {
-    const product = await productsModel.findById(pid);
+    const product = await productMangerDB.getProductById(pid);
     res.send({
       status: "succes",
       msg: "Product hallado",
@@ -71,14 +76,15 @@ router.post("/", async (req, res) => {
 
   
   try {
-    const result = await productsModel.create(product);
+   
+    const result = await productMangerDB.createProduct(product);
     res.send({
       status: "succes",
       msg: "Producto creado",
       result,
     });
   } catch {
-    console.log("Error en lectura de archivos!!");
+    console.log("Error en lectura de archivoss!!");
   }
 });
 
@@ -88,8 +94,6 @@ router.put("/:pid", async (req, res) => {
   if (!pid) {
     return res.status(400).send({ error: "Debe ingresar Id. Product" });
   }
-
-  //const product = req.body;
   const {
     title,
     description,
@@ -116,7 +120,7 @@ router.put("/:pid", async (req, res) => {
   };
   
   try {
-    const result = await productsModel.updateOne({ _id: pid }, { $set: product });
+    const result = await productMangerDB.updateProduct(pid, product)
     res.send({
       status: "succes",
       msg: `Ruta PUT de PRODUCTS con ID: ${pid}`,
@@ -146,7 +150,9 @@ router.delete("/:pid", async (req, res) => {
     return res.status(400).send({ error: "Debe ingresar Id. Product" });
   }
   try {
-    const result = await productsModel.deleteOne({ _id: pid });
+  
+    const result = await productMangerDB.deleteProduct(pid);
+    
     res.send({
       status: "succes",
       msg: `Ruta DELETE de PRODUCTS con ID: ${pid}`,

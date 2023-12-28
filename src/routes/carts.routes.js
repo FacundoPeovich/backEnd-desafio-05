@@ -1,13 +1,17 @@
 import { Router } from "express";
+import { CartManagerDB } from "../dao/managers/dbMangers/CartManagerDB.js";
 
-import cartsModel from "../dao/models/carts.model.js";
+//import cartsModel from "../dao/models/carts.model.js";
+
+const cartManagerDB = new CartManagerDB();
 
 const router = Router();
 
 router.get("/", async (req, res) => {
  
   try {
-    const carts = await cartsModel.find();
+    //const carts = await cartsModel.find();
+    const carts = await cartManagerDB.getCarts();
     res.send({
       status: "succes",
       carts,
@@ -23,7 +27,9 @@ router.get("/:cid", async (req, res) => {
   const cid = req.params.cid;
   
   try {
-    const cart = await cartsModel.findById({ _id: cid });
+    //const cart = await cartsModel.findById({ _id: cid });
+    const cart = await cartManagerDB.getIdCart(cid);
+
     res.send({
       status: "succes",
       msg: `Ruta GET ID CART con ID: ${cid}`,
@@ -42,7 +48,8 @@ router.post("/", async (req, res) => {
   };
   
   try {
-    const carts = await cartsModel.create(cart);
+    //const carts = await cartsModel.create(cart);
+    const carts = await cartManagerDB.createCarts(cart);
     res.send({
       status: "succes",
       msg: "Ruta POST CART",
@@ -58,34 +65,10 @@ router.post("/:cid/product/:pid", async (req, res) => {
   //creo
   const cid = req.params.cid;
   const pid = req.params.pid;
-
-  
-    //Primer try/Cath por el find
-    // console.log("----cart-----")
-    // console.log(cart)
+  const quantity = req.body.quantity;
     try {
-        const cart = await cartsModel.findById({ _id: cid });
-        if (!cart) {
-          //return res.status(400).send({ error: "Debe ingresar un Id. Product valido" });
-          return res.status(404).send({
-            status: "error",
-            msg: `No se encontró ningún carrito con el ID: ${cid}`,
-          });
-        }
-        const productIndex = cart.products.findIndex(
-          (product) => product.id === pid
-        );
-
-        if (productIndex >= 0) {
-          cart.products[productIndex].quantity += 1;
-        } else {
-          const product = {
-            id: pid,
-            quantity: 1,
-          };
-          cart.products.push(product);
-        }
-        const result = await cartsModel.updateOne({_id:cid},{$set:cart});
+        const result = await cartManagerDB.updateCart(cid, pid, quantity);
+        //console.log(result);
         res.send({
             status: "succes",
             msg: `Ruta POST CART - Agrego producto al carrito. CID: ${cid} - PID: ${pid}`,
@@ -112,7 +95,8 @@ router.put("/:cid", async (req, res) => {
 router.delete("/:cid", async (req, res) => {
   const cid = req.params.cid;
   try {
-    let result = await cartsModel.deleteOne({_id:cid})
+    //let result = await cartsModel.deleteOne({_id:cid})
+    const result = await cartManagerDB.deleteCart(cid)
     res.send({
       status: "succes",
       msg: `Ruta DELETE de CART con ID: ${cid}`,

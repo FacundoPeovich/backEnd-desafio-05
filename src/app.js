@@ -4,7 +4,7 @@ import { productRouter } from './routes/products.routes.js';
 import mongoose from 'mongoose';
 import { engine } from "express-handlebars";
 import { Server } from "socket.io";
-import {__dirname} from "./utils.js";
+import __dirname from "./utils.js";
 import viewsChatRouter from "./routes/views.chat.router.js"; //to do
 import messagesModel from './dao/models/messages.model.js';
 
